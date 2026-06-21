@@ -6,6 +6,64 @@
 
 ---
 
+## 0. 開發現況（Implementation Status）
+
+> 更新：2026-06-21
+
+本文件以下章節（§1 起）為**設計規格**；本節記錄**實際實作進度**。
+
+### 已完成
+
+| 範圍 | 內容 |
+|------|------|
+| 專案骨架 | Vite + **React 19** + **TypeScript** + **Tailwind v4**（CSS-first `@theme`）+ **Framer Motion** |
+| 核心邏輯 | 難度曲線、場景生成、五種題型生成（顏色／位置／順序／數量／反向）；24,000 關壓測 0 錯 |
+| 狀態機 | `useGameStore`：home→ready→memorize→question→correct／wrong→gameover，含復活、頭銜偵測 |
+| UI | 首頁、遊戲畫面、盤面、選項、倒數條、頭銜徽章、死亡／結算、設定彈窗 |
+| 音效 | **Web Audio 合成**（答對／答錯／復活／頭銜升級 + 記憶階段環境音），無外部音檔、可離線 |
+| 設定 | 音效／音樂開關，`localStorage` 持久化 |
+| 頭銜升級 | 跨頭銜門檻時播放儀式動畫 + 音效 |
+| PWA | `manifest.webmanifest` + service worker（vite-plugin-pwa）、192／512／maskable 圖示、字型 runtime 快取，可安裝／離線 |
+| 資料 | `localStorage` 存最高關卡與設定 |
+
+### 重要技術決策
+
+- **問題採結構化資料 + 圖示渲染**（非寫死文字），以落實「無語言隔閡」目標 → 見 `src/game/types.ts` 的 `Question` union 與 `src/components/QuestionPanel.tsx`。
+- **盤面 5×5**（原 §12 待決），物件逐一出現間隔依展示秒數自適應（在展示時間前半段內全部現身）。
+- 音效目前用 Web Audio 合成；GDD §10 列的 **Howler.js** 已安裝，保留給未來取樣音檔。
+
+### 檔案結構（`src/`）
+
+```
+game/        types, constants, rng, difficulty,
+             sceneGenerator, questionGenerator, levelFactory, storage
+state/       useGameStore, useSettings
+audio/       sfx（Web Audio 引擎）
+components/  ObjectIcon, Board, MiniGrid, CountdownBar,
+             QuestionPanel, TitleBadge, SettingsModal
+screens/     HomeScreen, GameScreen
+```
+
+### 如何執行
+
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # 產出 dist/（含 PWA）
+npm run preview  # 預覽正式建置
+```
+
+### 待辦（下一階段）
+
+- [ ] 頭銜升級動畫再加強（粒子／音效層次）
+- [ ] 真實取樣音效（改 Howler.js）
+- [ ] TWA 打包（Bubblewrap / PWA Builder）→ 上架 Google Play
+- [ ] 接入 AdMob Rewarded（復活廣告）
+- [ ] 接入 Google Play Billing（買斷 $1.99）
+- [ ] 自訂安裝提示（A2HS）、splash 畫面優化
+
+---
+
 ## 1. 遊戲概述
 
 | 項目 | 內容 |
@@ -260,8 +318,8 @@ cybermind_music_enabled   // 音樂開關
 
 ## 12. 待決定事項
 
-- [ ] 格子盤面尺寸（建議 4×4 或 5×5，待測試）
-- [ ] 物件動畫出現間隔時間（建議 0.3–0.5秒/個）
-- [ ] App Icon 設計方向
+- [x] 格子盤面尺寸 → **5×5**（已實作）
+- [x] 物件動畫出現間隔時間 → **依展示秒數自適應**（上限 0.4 秒/個，前半段內全部出現）
+- [x] App Icon 設計方向 → **霓虹方塊標誌**（青色外框＋粉點＋綠箭頭＋紫線，見 `public/` 圖示）
 - [ ] 是否加入每日挑戰模式（未來擴充）
 - [ ] 是否加入好友分享截圖功能（未來擴充）

@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* ── 主題色票（霓虹賽博龐克）─────────────────────────── */
+@theme {
+  --color-bg: #07060f;
+  --color-bg-soft: #0e0b1c;
+  --color-surface: #14122a;
+  --color-surface-2: #1c1838;
+  --color-surface-border: #2a2350;
+
+  --color-neon-cyan: #00ffff;
+  --color-neon-purple: #bf5fff;
+  --color-neon-orange: #ff6b35;
+  --color-neon-pink: #ff2d78;
+  --color-neon-green: #39ff14;
+  --color-neon-red: #ff1f4b;
+  --color-neon-gold: #ffd23f;
+
+  --font-display: "Orbitron", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 800px at 50% -15%, #1a1340 0%, transparent 60%),
+      var(--color-bg);
+    color: #e6e3ff;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* 遊戲體驗：去除點擊高亮與不必要的文字選取 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    font-family: inherit;
+  }
+}
+
+/* ── 共用工具：發光效果（跟隨 currentColor）──────────── */
+@utility text-glow {
+  text-shadow:
+    0 0 8px currentColor,
+    0 0 24px currentColor;
+}
+
+@utility box-glow {
+  box-shadow:
+    0 0 12px -2px currentColor,
+    0 0 30px -8px currentColor;
+}
+
+@utility box-glow-sm {
+  box-shadow: 0 0 10px -3px currentColor;
+}
+
+/* SVG / 圖示發光（跟隨 currentColor） */
+@utility icon-glow {
+  filter: drop-shadow(0 0 5px currentColor) drop-shadow(0 0 11px currentColor);
+}
