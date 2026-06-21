@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cybermind",
+  "compatibility_date": "2025-01-01",
+  // 純靜態 SPA：把 build 產物 dist/ 當作資產部署（assets-only Worker，無需 Worker 程式碼）
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

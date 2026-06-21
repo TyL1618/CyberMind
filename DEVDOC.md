@@ -53,20 +53,22 @@ npm run build    # 產出 dist/（含 PWA）
 npm run preview  # 預覽正式建置
 ```
 
-### 部署（Cloudflare Pages）
+### 部署（Cloudflare Workers，靜態資產）
 
-純靜態站,build 後部署 `dist/`。`public/_redirects` 已設 SPA fallback。
+以 **Workers 靜態資產（assets-only Worker）** 部署純靜態 SPA,設定在 `wrangler.jsonc`
+（`assets.directory=./dist`、`not_found_handling=single-page-application` 處理 SPA 路由）。
+`.node-version` 固定 Node 22 供 CI 建置。
 
 **方式一：Git 整合（建議,推送自動部署）**
-Cloudflare 後台 → Workers & Pages → Create → Pages → 連結 GitHub repo `TyL1618/CyberMind`,設定:
+Cloudflare 後台 → Workers & Pages → Create → Workers → Import a repository → `TyL1618/CyberMind`:
 - Build command：`npm run build`
-- Build output directory：`dist`
-- 之後每次 `git push` 自動部署。
+- Deploy command：`npx wrangler deploy`
+- 之後每次 `git push` 自動建置部署。
 
 **方式二：CLI 手動部署**
 ```bash
 npm run cf:login   # 首次：瀏覽器授權 wrangler
-npm run deploy     # build + 上傳 dist 到 Pages 專案 cybermind
+npm run deploy     # build + wrangler deploy（讀 wrangler.jsonc）
 ```
 
 ### 待辦（下一階段）
