@@ -53,6 +53,22 @@ npm run build    # 產出 dist/（含 PWA）
 npm run preview  # 預覽正式建置
 ```
 
+### 部署（Cloudflare Pages）
+
+純靜態站,build 後部署 `dist/`。`public/_redirects` 已設 SPA fallback。
+
+**方式一：Git 整合（建議,推送自動部署）**
+Cloudflare 後台 → Workers & Pages → Create → Pages → 連結 GitHub repo `TyL1618/CyberMind`,設定:
+- Build command：`npm run build`
+- Build output directory：`dist`
+- 之後每次 `git push` 自動部署。
+
+**方式二：CLI 手動部署**
+```bash
+npm run cf:login   # 首次：瀏覽器授權 wrangler
+npm run deploy     # build + 上傳 dist 到 Pages 專案 cybermind
+```
+
 ### 待辦（下一階段）
 
 - [ ] 頭銜升級動畫再加強（粒子／音效層次）

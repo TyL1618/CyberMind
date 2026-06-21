@@ -12,7 +12,7 @@ interface Props {
 
 export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props) {
   return (
-    <div className="relative flex min-h-full flex-col items-center justify-center gap-10 px-6 text-center">
+    <div className="relative flex flex-1 flex-col items-center justify-center gap-10 px-6 text-center">
       <button
         type="button"
         onClick={onOpenSettings}
