@@ -8,26 +8,46 @@ import { QuestionPanel } from '../components/QuestionPanel'
 import { Countdown } from '../components/Countdown'
 import { TitleBadge } from '../components/TitleBadge'
 
-function Header({
+function TopBar({
   level,
   bestRound,
   revivesLeft,
   onOpenSettings,
+  onReturnMenu,
+  onPause,
 }: {
   level: number
   bestRound: number
   revivesLeft: number
   onOpenSettings: () => void
+  onReturnMenu: () => void
+  onPause: () => void
 }) {
   const { t } = useI18n()
+  const iconBtn = 'text-xl text-white/55 transition active:scale-90 hover:text-neon-cyan'
   return (
-    <div className="flex w-full max-w-[440px] items-center justify-between gap-2 text-sm">
-      <div className="flex flex-col">
-        <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">{t('level')}</span>
-        <span className="font-[Orbitron] text-2xl font-bold text-neon-cyan text-glow">{level}</span>
+    <div className="flex w-full max-w-[440px] flex-col gap-3">
+      {/* 控制列：暫停（左）｜主選單 + 設定（右） */}
+      <div className="flex items-center justify-between">
+        <button type="button" onClick={onPause} aria-label={t('pause')} className={iconBtn}>
+          ⏸
+        </button>
+        <div className="flex items-center gap-4">
+          <button type="button" onClick={onReturnMenu} aria-label={t('menu')} className={iconBtn}>
+            ⌂
+          </button>
+          <button type="button" onClick={onOpenSettings} aria-label={t('settings')} className={iconBtn}>
+            ⚙
+          </button>
+        </div>
       </div>
-      <TitleBadge title={titleForLevel(level)} />
-      <div className="flex items-center gap-3">
+      {/* 資訊列：關卡｜頭銜｜最佳 + 復活 */}
+      <div className="flex items-center justify-between gap-2 text-sm">
+        <div className="flex flex-col">
+          <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">{t('level')}</span>
+          <span className="font-[Orbitron] text-2xl font-bold text-neon-cyan text-glow">{level}</span>
+        </div>
+        <TitleBadge title={titleForLevel(level)} />
         <div className="flex flex-col items-end">
           <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">
             {t('best')} {bestRound}
@@ -40,20 +60,22 @@ function Header({
             ))}
           </span>
         </div>
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          aria-label={t('settings')}
-          className="text-xl text-white/50 transition active:scale-90 hover:text-neon-cyan"
-        >
-          ⚙
-        </button>
       </div>
     </div>
   )
 }
 
-export function GameScreen({ store, onOpenSettings }: { store: GameStore; onOpenSettings: () => void }) {
+export function GameScreen({
+  store,
+  onOpenSettings,
+  onReturnMenu,
+  onPause,
+}: {
+  store: GameStore
+  onOpenSettings: () => void
+  onReturnMenu: () => void
+  onPause: () => void
+}) {
   const { t } = useI18n()
   const {
     phase,
@@ -70,11 +92,13 @@ export function GameScreen({ store, onOpenSettings }: { store: GameStore; onOpen
 
   return (
     <div className="relative flex flex-1 flex-col items-center gap-6 px-4 py-5">
-      <Header
+      <TopBar
         level={level}
         bestRound={bestRound}
         revivesLeft={revivesLeft}
         onOpenSettings={onOpenSettings}
+        onReturnMenu={onReturnMenu}
+        onPause={onPause}
       />
 
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-6">

@@ -135,12 +135,12 @@ export interface GameStore extends State {
 export function useGameStore(): GameStore {
   const [state, dispatch] = useReducer(reducer, undefined, initState)
 
-  // 倒數計時（setInterval 驅動，支援暫停：開設定時凍結）
+  // 倒數計時（setInterval 驅動，可暫停）
   const [paused, setPaused] = useState(false)
-  const pausedRef = useRef(paused)
-  pausedRef.current = paused
   const [remainingMs, setRemainingMs] = useState(0)
   const [phaseDurationMs, setPhaseDurationMs] = useState(0)
+  const remainingRef = useRef(0) // 跨「暫停/續跑」保留剩餘時間
+  const timerKeyRef = useRef('') // 用來判斷是「換階段」還是「只是暫停切換」
 
   useEffect(() => {
     // 決定當前階段的計時長度與到期動作
@@ -161,33 +161,41 @@ export function useGameStore(): GameStore {
     }
 
     if (!onDone) {
+      timerKeyRef.current = ''
       setPhaseDurationMs(0)
       setRemainingMs(0)
       return
     }
 
-    setPhaseDurationMs(duration)
-    let remaining = duration
-    setRemainingMs(remaining)
-    // 用 setInterval（非 rAF）：100ms 一次,數字每秒變、進度條夠平滑,
-    // 且不會像 rAF 持續佔用合成器（對截圖/省電友善）。依真實經過時間扣除,計時精準。
+    // 換到新的計時階段才重設剩餘時間;若只是 paused 切換則沿用 remainingRef。
+    const key = `${state.phase}:${state.levelData?.level ?? ''}`
+    if (timerKeyRef.current !== key) {
+      timerKeyRef.current = key
+      remainingRef.current = duration
+      setPhaseDurationMs(duration)
+      setRemainingMs(duration)
+    }
+
+    // 暫停時完全不開計時器(事件迴圈靜止 → 省電、利於截圖),剩餘時間凍結在 ref。
+    if (paused) return
+
+    // setInterval 100ms：數字每秒變、進度條夠平滑;依真實經過時間扣除,計時精準。
     let last = performance.now()
     const id = setInterval(() => {
       const now = performance.now()
-      const dt = now - last
+      remainingRef.current -= now - last
       last = now
-      if (pausedRef.current) return // 暫停:不扣時間（last 已更新,回復後不會跳秒）
-      remaining -= dt
-      if (remaining <= 0) {
+      if (remainingRef.current <= 0) {
+        remainingRef.current = 0
         setRemainingMs(0)
         clearInterval(id)
         dispatch(onDone!)
         return
       }
-      setRemainingMs(remaining)
+      setRemainingMs(remainingRef.current)
     }, 100)
     return () => clearInterval(id)
-  }, [state.phase, state.levelData])
+  }, [state.phase, state.levelData, paused])
 
   // 通知 PWA 是否「遊玩中」：非首頁/結算 → 遊玩中,新版更新先 defer
   useEffect(() => {

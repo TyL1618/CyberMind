@@ -14,22 +14,29 @@ function App() {
   const settings = useSettings()
   const { t } = useI18n()
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [confirmLeave, setConfirmLeave] = useState(false)
+  const [confirmLeave, setConfirmLeave] = useState(false) // 首頁：離開 App
+  const [leaveGameOpen, setLeaveGameOpen] = useState(false) // 遊戲中：返回主選單確認
+  const [gamePaused, setGamePaused] = useState(false) // 遊戲中：全黑暫停
 
   const onHome = store.phase === 'home'
 
-  // 開設定時暫停倒數（答題/展示計時凍結，關閉後續跑）
+  // 任一遮罩開啟時暫停倒數（設定 / 返回確認 / 暫停）
+  const shouldPause = settingsOpen || leaveGameOpen || gamePaused
   useEffect(() => {
-    store.setPaused(settingsOpen)
-  }, [settingsOpen, store])
+    store.setPaused(shouldPause)
+  }, [shouldPause, store])
 
   // ── 返回鍵管理（移植自 TaiexRider 的 history 哨兵法）──────────────
-  //   遊戲中按返回 → 回主選單;設定開著按返回 → 關設定;
-  //   首頁按返回 → 跳「再按一次離開」;再按一次 → 真正離開 App（TWA finish）。
+  //   遮罩開著 → 先關遮罩;遊戲中 → 回主選單;
+  //   首頁 → 跳「再按一次離開」;再按一次 → 真正離開 App（TWA finish）。
   const storeRef = useRef<GameStore>(store)
   storeRef.current = store
   const settingsOpenRef = useRef(settingsOpen)
   settingsOpenRef.current = settingsOpen
+  const leaveGameRef = useRef(leaveGameOpen)
+  leaveGameRef.current = leaveGameOpen
+  const pausedRef = useRef(gamePaused)
+  pausedRef.current = gamePaused
   const confirmLeaveRef = useRef(confirmLeave)
   confirmLeaveRef.current = confirmLeave
   const leavingRef = useRef(false)
@@ -41,9 +48,19 @@ function App() {
     const onPop = () => {
       if (leavingRef.current) return // 已決定離開:讓 history 自然耗盡，TWA finish()
 
-      // 1) 設定開著 → 關設定
+      // 1) 任一遊戲內遮罩開著 → 先關遮罩
       if (settingsOpenRef.current) {
         setSettingsOpen(false)
+        rearm()
+        return
+      }
+      if (pausedRef.current) {
+        setGamePaused(false)
+        rearm()
+        return
+      }
+      if (leaveGameRef.current) {
+        setLeaveGameOpen(false)
         rearm()
         return
       }
@@ -81,8 +98,9 @@ function App() {
     }
   }, []) // 只掛載一次,永不移除
 
-  const returnHome = () => {
-    setSettingsOpen(false)
+  const leaveToMenu = () => {
+    setLeaveGameOpen(false)
+    setGamePaused(false)
     store.goHome()
   }
 
@@ -104,17 +122,74 @@ function App() {
           onOpenSettings={() => setSettingsOpen(true)}
         />
       ) : (
-        <GameScreen store={store} onOpenSettings={() => setSettingsOpen(true)} />
+        <GameScreen
+          store={store}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onReturnMenu={() => setLeaveGameOpen(true)}
+          onPause={() => setGamePaused(true)}
+        />
       )}
 
       <AnimatePresence>
-        {settingsOpen && (
-          <SettingsModal
-            settings={settings}
-            onClose={() => setSettingsOpen(false)}
-            inGame={!onHome}
-            onReturnHome={returnHome}
-          />
+        {settingsOpen && <SettingsModal settings={settings} onClose={() => setSettingsOpen(false)} />}
+      </AnimatePresence>
+
+      {/* 暫停：全黑遮罩 + 中央暫停符號（看不到盤面，防止暫停找漏洞），點擊繼續 */}
+      <AnimatePresence>
+        {gamePaused && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setGamePaused(false)}
+            className="fixed inset-0 z-[55] flex flex-col items-center justify-center gap-6 bg-black"
+          >
+            <span className="text-7xl text-neon-cyan text-glow">⏸</span>
+            <span className="font-[Orbitron] text-xs tracking-[0.3em] text-white/50">
+              {t('tapResume')}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 返回主選單確認 */}
+      <AnimatePresence>
+        {leaveGameOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLeaveGameOpen(false)}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-bg/85 px-6 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.85, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="flex w-full max-w-xs flex-col items-center gap-5 rounded-2xl border border-surface-border bg-surface p-6 text-center"
+            >
+              <span className="font-[Orbitron] text-base font-bold tracking-wide text-neon-cyan">
+                {t('leaveGameTitle')}
+              </span>
+              <div className="flex w-full gap-3">
+                <button
+                  type="button"
+                  onClick={() => setLeaveGameOpen(false)}
+                  className="flex-1 rounded-full border-2 border-surface-border py-2.5 font-[Orbitron] text-sm font-bold tracking-wide text-white/70 active:scale-95"
+                >
+                  {t('stay')}
+                </button>
+                <button
+                  type="button"
+                  onClick={leaveToMenu}
+                  className="flex-1 rounded-full border-2 border-neon-pink py-2.5 font-[Orbitron] text-sm font-bold tracking-wide text-neon-pink box-glow active:scale-95"
+                >
+                  {t('leave')}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

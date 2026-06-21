@@ -29,14 +29,9 @@ function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; labe
 export function SettingsModal({
   settings,
   onClose,
-  inGame = false,
-  onReturnHome,
 }: {
   settings: Settings
   onClose: () => void
-  /** 是否在遊戲中開啟（顯示「返回主選單」） */
-  inGame?: boolean
-  onReturnHome?: () => void
 }) {
   const { t, lang, setLang } = useI18n()
   return (
@@ -89,16 +84,6 @@ export function SettingsModal({
           on={settings.musicEnabled}
           onClick={() => settings.setMusicEnabled(!settings.musicEnabled)}
         />
-
-        {inGame && onReturnHome && (
-          <button
-            type="button"
-            onClick={onReturnHome}
-            className="rounded-full border-2 border-neon-pink py-2.5 font-[Orbitron] text-sm font-bold tracking-wide text-neon-pink box-glow active:scale-95"
-          >
-            {t('returnToMenu')}
-          </button>
-        )}
 
         <button
           type="button"
