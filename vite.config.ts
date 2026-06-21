@@ -9,7 +9,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // prompt + injectRegister:null:由 src/pwa.ts 透過 virtual:pwa-register 手動註冊,
+      // 偵測到新版時自行決定何時 reload(遊玩中先 defer,回首頁再套用)。
+      registerType: 'prompt',
+      injectRegister: null,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'CyberMind',
@@ -18,7 +21,8 @@ export default defineConfig({
         lang: 'zh-Hant',
         theme_color: '#07060f',
         background_color: '#07060f',
-        display: 'standalone',
+        // fullscreen:安裝/ TWA 後沉浸式隱藏系統列(上方時間列 + 下方導覽列)
+        display: 'fullscreen',
         orientation: 'portrait',
         start_url: '/',
         scope: '/',

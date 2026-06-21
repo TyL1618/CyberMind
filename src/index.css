@@ -37,11 +37,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    /* 像原生 App：禁止選取/複製、長按選單，去除點擊高亮 */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
 
-  /* 遊戲體驗：去除點擊高亮與不必要的文字選取 */
   * {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 圖片不可拖曳（減少網頁感） */
+  img,
+  svg {
+    -webkit-user-drag: none;
+    user-select: none;
   }
 
   button {

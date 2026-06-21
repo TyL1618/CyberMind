@@ -3,12 +3,13 @@
 // 流程：home → ready → memorize → question → correct / wrong
 //   correct ──(0.9s)──▶ 下一關 ready
 //   wrong   ──玩家選擇──▶ revive(同關重生) 或 gameover
-import { useEffect, useReducer, useRef } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import type { Level, Phase, Title } from '../game/types'
 import { ANSWER_SECONDS, READY_SECONDS, REVIVES_PER_RUN, titleForLevel } from '../game/constants'
 import { generateLevel } from '../game/levelFactory'
 import { loadBestRound, saveBestRound } from '../game/storage'
 import { sfx } from '../audio/sfx'
+import { setPlaying } from '../pwa'
 
 interface State {
   phase: Phase
@@ -118,6 +119,12 @@ function reducer(state: State, action: Action): State {
 }
 
 export interface GameStore extends State {
+  /** 當前計時階段剩餘毫秒（供倒數 UI） */
+  remainingMs: number
+  /** 當前計時階段總長毫秒（供進度條比例） */
+  phaseDurationMs: number
+  paused: boolean
+  setPaused: (v: boolean) => void
   start: () => void
   answer: (index: number) => void
   revive: () => void
@@ -128,25 +135,64 @@ export interface GameStore extends State {
 export function useGameStore(): GameStore {
   const [state, dispatch] = useReducer(reducer, undefined, initState)
 
-  // 階段計時器
+  // 倒數計時（setInterval 驅動，支援暫停：開設定時凍結）
+  const [paused, setPaused] = useState(false)
+  const pausedRef = useRef(paused)
+  pausedRef.current = paused
+  const [remainingMs, setRemainingMs] = useState(0)
+  const [phaseDurationMs, setPhaseDurationMs] = useState(0)
+
   useEffect(() => {
+    // 決定當前階段的計時長度與到期動作
+    let duration = 0
+    let onDone: Action | null = null
     if (state.phase === 'ready') {
-      const t = setTimeout(() => dispatch({ type: 'BEGIN_MEMORIZE' }), READY_SECONDS * 1000)
-      return () => clearTimeout(t)
+      duration = READY_SECONDS * 1000
+      onDone = { type: 'BEGIN_MEMORIZE' }
+    } else if (state.phase === 'memorize' && state.levelData) {
+      duration = state.levelData.showSeconds * 1000
+      onDone = { type: 'BEGIN_QUESTION' }
+    } else if (state.phase === 'question') {
+      duration = ANSWER_SECONDS * 1000
+      onDone = { type: 'ANSWER', index: -1 }
+    } else if (state.phase === 'correct') {
+      duration = 900
+      onDone = { type: 'NEXT' }
     }
-    if (state.phase === 'memorize' && state.levelData) {
-      const t = setTimeout(() => dispatch({ type: 'BEGIN_QUESTION' }), state.levelData.showSeconds * 1000)
-      return () => clearTimeout(t)
+
+    if (!onDone) {
+      setPhaseDurationMs(0)
+      setRemainingMs(0)
+      return
     }
-    if (state.phase === 'question') {
-      const t = setTimeout(() => dispatch({ type: 'ANSWER', index: -1 }), ANSWER_SECONDS * 1000)
-      return () => clearTimeout(t)
-    }
-    if (state.phase === 'correct') {
-      const t = setTimeout(() => dispatch({ type: 'NEXT' }), 900)
-      return () => clearTimeout(t)
-    }
+
+    setPhaseDurationMs(duration)
+    let remaining = duration
+    setRemainingMs(remaining)
+    // 用 setInterval（非 rAF）：100ms 一次,數字每秒變、進度條夠平滑,
+    // 且不會像 rAF 持續佔用合成器（對截圖/省電友善）。依真實經過時間扣除,計時精準。
+    let last = performance.now()
+    const id = setInterval(() => {
+      const now = performance.now()
+      const dt = now - last
+      last = now
+      if (pausedRef.current) return // 暫停:不扣時間（last 已更新,回復後不會跳秒）
+      remaining -= dt
+      if (remaining <= 0) {
+        setRemainingMs(0)
+        clearInterval(id)
+        dispatch(onDone!)
+        return
+      }
+      setRemainingMs(remaining)
+    }, 100)
+    return () => clearInterval(id)
   }, [state.phase, state.levelData])
+
+  // 通知 PWA 是否「遊玩中」：非首頁/結算 → 遊玩中,新版更新先 defer
+  useEffect(() => {
+    setPlaying(state.phase !== 'home' && state.phase !== 'gameover')
+  }, [state.phase])
 
   // 持久化最高關卡
   useEffect(() => {
@@ -172,6 +218,10 @@ export function useGameStore(): GameStore {
 
   return {
     ...state,
+    remainingMs,
+    phaseDurationMs,
+    paused,
+    setPaused,
     start: () => {
       sfx.ensure() // 使用者手勢，解鎖音訊
       dispatch({ type: 'START' })

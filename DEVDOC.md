@@ -8,7 +8,7 @@
 
 ## 0. 開發現況（Implementation Status）
 
-> 更新：2026-06-21
+> 更新：2026-06-21（第二輪：i18n／沉浸式／體驗強化）
 
 本文件以下章節（§1 起）為**設計規格**；本節記錄**實際實作進度**。
 
@@ -18,28 +18,37 @@
 |------|------|
 | 專案骨架 | Vite + **React 19** + **TypeScript** + **Tailwind v4**（CSS-first `@theme`）+ **Framer Motion** |
 | 核心邏輯 | 難度曲線、場景生成、五種題型生成（顏色／位置／順序／數量／反向）；24,000 關壓測 0 錯 |
-| 狀態機 | `useGameStore`：home→ready→memorize→question→correct／wrong→gameover，含復活、頭銜偵測 |
-| UI | 首頁、遊戲畫面、盤面、選項、倒數條、頭銜徽章、死亡／結算、設定彈窗 |
+| 狀態機 | `useGameStore`：home→ready→memorize→question→correct／wrong→gameover，含復活、頭銜偵測、**可暫停計時** |
+| UI | 首頁、遊戲畫面、盤面（5×5 完美正方格）、選項（圓角正方形；顏色題整格填色）、倒數（數字＋進度條）、頭銜徽章、死亡／結算、設定彈窗 |
+| **i18n** | 零依賴自建（`src/i18n`），**繁中（預設）／英文**設定即時切換、`localStorage` 持久化；題目提示、頭銜、所有功能文字皆翻譯（品牌字 CYBERMIND 保留） |
+| **倒數計時** | 展示／答題兩階段皆有：中央大數字 + 進度條，越接近 0 由青→黃→紅；`setInterval` 依真實時間扣除、**開設定即暫停** |
 | 音效 | **Web Audio 合成**（答對／答錯／復活／頭銜升級 + 記憶階段環境音），無外部音檔、可離線 |
-| 設定 | 音效／音樂開關，`localStorage` 持久化 |
+| 設定 | 語言／音效／音樂開關 + **遊戲中可返回主選單**，`localStorage` 持久化；首頁與遊戲內共用同一彈窗 |
 | 頭銜升級 | 跨頭銜門檻時播放儀式動畫 + 音效 |
-| PWA | `manifest.webmanifest` + service worker（vite-plugin-pwa）、192／512／maskable 圖示、字型 runtime 快取，可安裝／離線 |
-| 資料 | `localStorage` 存最高關卡與設定 |
+| **沉浸式** | manifest `display:fullscreen`（安裝／TWA 隱藏系統列）、`viewport-fit=cover` + safe-area padding |
+| **PWA 自動更新** | `registerType:prompt` + `src/pwa.ts`：每 60 秒偵測新版，**遊玩中先 defer、回首頁自動套用**（免手動清快取） |
+| **原生感** | 全站禁右鍵選單、禁文字選取／複製、禁圖片拖曳；返回鍵：遊戲中→回主選單、首頁→「再按一次離開」（history 哨兵法，TWA 可 finish） |
+| 資料 | `localStorage` 存最高關卡、設定、語言 |
 
 ### 重要技術決策
 
 - **問題採結構化資料 + 圖示渲染**（非寫死文字），以落實「無語言隔閡」目標 → 見 `src/game/types.ts` 的 `Question` union 與 `src/components/QuestionPanel.tsx`。
-- **盤面 5×5**（原 §12 待決），物件逐一出現間隔依展示秒數自適應（在展示時間前半段內全部現身）。
+- **i18n 零依賴**：介面文字極少，自建 `t()` + Context（`src/i18n/index.tsx`）比引入 react-i18next 更輕；頭銜以穩定 `tier` 為 key 對應翻譯。
+- **倒數用 `setInterval` 而非 rAF**：依真實經過時間扣除（精準），不持續佔用合成器（省電、利於截圖），暫停時略過扣時即可。
+- **沉浸式／返回鍵／自動更新移植自 TaiexRider**：`display:fullscreen` manifest、history 哨兵 + `beforeunload`、prompt 模式 SW + 60s 偵測。
+- **盤面 5×5**，物件逐一出現間隔依展示秒數自適應（在展示時間前半段內全部現身）。
 - 音效目前用 Web Audio 合成；GDD §10 列的 **Howler.js** 已安裝，保留給未來取樣音檔。
 
 ### 檔案結構（`src/`）
 
 ```
+i18n/        index（零依賴 i18n：字典 + Provider + useI18n/t）
+pwa.ts       Service Worker 註冊 + 自動更新（遊玩中 defer）
 game/        types, constants, rng, difficulty,
              sceneGenerator, questionGenerator, levelFactory, storage
-state/       useGameStore, useSettings
+state/       useGameStore（含可暫停計時）, useSettings
 audio/       sfx（Web Audio 引擎）
-components/  ObjectIcon, Board, MiniGrid, CountdownBar,
+components/  ObjectIcon, Board, MiniGrid, Countdown,
              QuestionPanel, TitleBadge, SettingsModal
 screens/     HomeScreen, GameScreen
 ```

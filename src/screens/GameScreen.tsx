@@ -1,49 +1,81 @@
 // 遊戲畫面：依階段渲染（ready / memorize / question / correct / wrong / gameover）
 import { AnimatePresence, motion } from 'framer-motion'
 import type { GameStore } from '../state/useGameStore'
-import { ANSWER_SECONDS, REVIVES_PER_RUN, titleForLevel } from '../game/constants'
+import { REVIVES_PER_RUN, titleForLevel } from '../game/constants'
+import { useI18n } from '../i18n'
 import { Board } from '../components/Board'
 import { QuestionPanel } from '../components/QuestionPanel'
-import { CountdownBar } from '../components/CountdownBar'
+import { Countdown } from '../components/Countdown'
 import { TitleBadge } from '../components/TitleBadge'
 
 function Header({
   level,
   bestRound,
   revivesLeft,
+  onOpenSettings,
 }: {
   level: number
   bestRound: number
   revivesLeft: number
+  onOpenSettings: () => void
 }) {
+  const { t } = useI18n()
   return (
-    <div className="flex w-full max-w-[440px] items-center justify-between text-sm">
+    <div className="flex w-full max-w-[440px] items-center justify-between gap-2 text-sm">
       <div className="flex flex-col">
-        <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">LEVEL</span>
+        <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">{t('level')}</span>
         <span className="font-[Orbitron] text-2xl font-bold text-neon-cyan text-glow">{level}</span>
       </div>
       <TitleBadge title={titleForLevel(level)} />
-      <div className="flex flex-col items-end">
-        <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">BEST {bestRound}</span>
-        <span className="text-base leading-tight" title="復活次數">
-          {Array.from({ length: REVIVES_PER_RUN }, (_, i) => (
-            <span key={i} className={i < revivesLeft ? 'text-neon-pink' : 'text-white/15'}>
-              ♥
-            </span>
-          ))}
-        </span>
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col items-end">
+          <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">
+            {t('best')} {bestRound}
+          </span>
+          <span className="text-base leading-tight" title={t('revive')}>
+            {Array.from({ length: REVIVES_PER_RUN }, (_, i) => (
+              <span key={i} className={i < revivesLeft ? 'text-neon-pink' : 'text-white/15'}>
+                ♥
+              </span>
+            ))}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          aria-label={t('settings')}
+          className="text-xl text-white/50 transition active:scale-90 hover:text-neon-cyan"
+        >
+          ⚙
+        </button>
       </div>
     </div>
   )
 }
 
-export function GameScreen({ store }: { store: GameStore }) {
-  const { phase, level, levelData, selectedIndex, revivesLeft, bestRound, justUnlockedTitle } = store
+export function GameScreen({ store, onOpenSettings }: { store: GameStore; onOpenSettings: () => void }) {
+  const { t } = useI18n()
+  const {
+    phase,
+    level,
+    levelData,
+    selectedIndex,
+    revivesLeft,
+    bestRound,
+    justUnlockedTitle,
+    remainingMs,
+    phaseDurationMs,
+  } = store
   const answered = phase === 'correct' || phase === 'wrong'
 
   return (
     <div className="relative flex flex-1 flex-col items-center gap-6 px-4 py-5">
-      <Header level={level} bestRound={bestRound} revivesLeft={revivesLeft} />
+      <Header
+        level={level}
+        bestRound={bestRound}
+        revivesLeft={revivesLeft}
+        onOpenSettings={onOpenSettings}
+      />
 
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-6">
         {phase === 'ready' && (
@@ -53,24 +85,24 @@ export function GameScreen({ store }: { store: GameStore }) {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center gap-2"
           >
-            <span className="font-[Orbitron] text-sm tracking-[0.3em] text-white/50">LEVEL {level}</span>
+            <span className="font-[Orbitron] text-sm tracking-[0.3em] text-white/50">
+              {t('level')} {level}
+            </span>
             <motion.span
               animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 1, repeat: Infinity }}
               className="font-[Orbitron] text-4xl font-bold text-neon-cyan text-glow"
             >
-              READY
+              {t('ready')}
             </motion.span>
           </motion.div>
         )}
 
         {phase === 'memorize' && levelData && (
-          <Board
-            objects={levelData.objects}
-            gridSize={5}
-            revealInterval={levelData.revealInterval}
-            animate
-          />
+          <>
+            <Board objects={levelData.objects} gridSize={5} revealInterval={levelData.revealInterval} animate />
+            <Countdown remainingMs={remainingMs} durationMs={phaseDurationMs} />
+          </>
         )}
 
         {(phase === 'question' || phase === 'correct' || phase === 'wrong') && levelData && (
@@ -81,7 +113,7 @@ export function GameScreen({ store }: { store: GameStore }) {
               selectedIndex={selectedIndex}
               onAnswer={store.answer}
             />
-            {phase === 'question' && <CountdownBar seconds={ANSWER_SECONDS} runKey={level} />}
+            {phase === 'question' && <Countdown remainingMs={remainingMs} durationMs={phaseDurationMs} />}
           </>
         )}
       </div>
@@ -110,9 +142,9 @@ export function GameScreen({ store }: { store: GameStore }) {
               transition={{ delay: 0.2 }}
               className="flex flex-col items-center gap-1"
             >
-              <span className="font-[Orbitron] text-xs tracking-[0.4em] text-neon-gold">NEW RANK</span>
+              <span className="font-[Orbitron] text-xs tracking-[0.4em] text-neon-gold">{t('newRank')}</span>
               <span className="font-[Orbitron] text-4xl font-black uppercase tracking-widest text-neon-gold text-glow">
-                {justUnlockedTitle.tier}
+                {t(`title.${justUnlockedTitle.tier}`)}
               </span>
             </motion.div>
           </motion.div>
@@ -134,31 +166,31 @@ export function GameScreen({ store }: { store: GameStore }) {
         )}
       </AnimatePresence>
 
-      {/* 死亡面板 */}
+      {/* 死亡面板：半透明深色全屏遮罩，內容垂直置中 */}
       <AnimatePresence>
         {phase === 'wrong' && (
           <motion.div
             key="wrong"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-gradient-to-t from-bg via-bg/95 to-transparent px-6 pb-8 pt-12"
+            className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-8 bg-bg/92 px-6 backdrop-blur-sm"
           >
             <motion.span
               animate={{ opacity: [1, 0.5, 1] }}
               transition={{ duration: 0.6, repeat: Infinity }}
-              className="font-[Orbitron] text-3xl font-black tracking-widest text-neon-red text-glow"
+              className="font-[Orbitron] text-4xl font-black tracking-widest text-neon-red text-glow"
             >
-              GAME OVER
+              {t('gameOver')}
             </motion.span>
-            <div className="flex w-full max-w-[440px] flex-col gap-3">
+            <div className="flex w-full max-w-[320px] flex-col gap-3">
               {revivesLeft > 0 && (
                 <button
                   type="button"
                   onClick={store.revive}
                   className="rounded-full border-2 border-neon-green py-3 font-[Orbitron] font-bold tracking-wide text-neon-green box-glow active:scale-95"
                 >
-                  ▶ REVIVE
+                  ▶ {t('revive')}
                 </button>
               )}
               <button
@@ -166,7 +198,7 @@ export function GameScreen({ store }: { store: GameStore }) {
                 onClick={store.endRun}
                 className="rounded-full border-2 border-surface-border py-3 font-[Orbitron] font-bold tracking-wide text-white/70 active:scale-95"
               >
-                END
+                {t('end')}
               </button>
             </div>
           </motion.div>
@@ -180,30 +212,30 @@ export function GameScreen({ store }: { store: GameStore }) {
             key="gameover"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex flex-col items-center justify-center gap-8 bg-bg/95 px-6 text-center"
+            className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-8 bg-bg/95 px-6 text-center"
           >
             <div className="flex flex-col items-center gap-2">
-              <span className="font-[Orbitron] text-sm tracking-[0.3em] text-white/40">REACHED</span>
+              <span className="font-[Orbitron] text-sm tracking-[0.3em] text-white/40">{t('reached')}</span>
               <span className="font-[Orbitron] text-7xl font-black text-neon-cyan text-glow">{level}</span>
               <TitleBadge title={titleForLevel(level)} className="mt-1" />
             </div>
             <span className="font-[Orbitron] text-xs tracking-[0.2em] text-white/40">
-              BEST · {bestRound}
+              {t('best')} · {bestRound}
             </span>
-            <div className="flex w-full max-w-[440px] flex-col gap-3">
+            <div className="flex w-full max-w-[320px] flex-col gap-3">
               <button
                 type="button"
                 onClick={store.start}
                 className="rounded-full border-2 border-neon-cyan py-3 font-[Orbitron] font-bold tracking-widest text-neon-cyan box-glow active:scale-95"
               >
-                RETRY
+                {t('retry')}
               </button>
               <button
                 type="button"
                 onClick={store.goHome}
                 className="rounded-full border-2 border-surface-border py-3 font-[Orbitron] font-bold tracking-wide text-white/70 active:scale-95"
               >
-                HOME
+                {t('home')}
               </button>
             </div>
           </motion.div>

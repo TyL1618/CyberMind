@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react'
 import type { Question } from '../game/types'
 import { NEON_COLOR_VAR } from '../game/constants'
+import { useI18n } from '../i18n'
 import { ObjectIcon } from './ObjectIcon'
 import { MiniGrid } from './MiniGrid'
 
@@ -12,16 +13,8 @@ interface Props {
   onAnswer: (index: number) => void
 }
 
-// 各題型的小標籤（輔助用，主要靠圖示）
-const PROMPT_LABEL: Record<Question['type'], string> = {
-  color: 'WHAT COLOR?',
-  position: 'WHERE?',
-  order: 'WHICH WAS Nᵗʰ?',
-  count: 'HOW MANY?',
-  absence: 'NOT SHOWN?',
-}
-
 function Prompt({ question }: { question: Question }) {
+  const { t } = useI18n()
   let visual: ReactNode = null
   switch (question.type) {
     case 'color':
@@ -62,8 +55,8 @@ function Prompt({ question }: { question: Question }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="flex min-h-[80px] items-center justify-center">{visual}</div>
-      <span className="font-[Orbitron] text-xs tracking-[0.2em] text-white/50">
-        {PROMPT_LABEL[question.type]}
+      <span className="font-[Orbitron] text-base tracking-[0.15em] text-white/70">
+        {t(`prompt.${question.type}`)}
       </span>
     </div>
   )
@@ -93,7 +86,7 @@ function OptionButton({
       type="button"
       disabled={answered}
       onClick={onClick}
-      className={`flex min-h-[104px] items-center justify-center rounded-2xl border-2 p-3 transition active:scale-95 ${stateCls}`}
+      className={`relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border-2 p-3 transition active:scale-95 ${stateCls}`}
     >
       {children}
     </button>
@@ -103,22 +96,23 @@ function OptionButton({
 function OptionContent({ question, index }: { question: Question; index: number }) {
   switch (question.type) {
     case 'color': {
+      // 整格填滿霓虹色（比圓圈直觀，不會被誤認為「選圓形」）
       const c = question.options[index]
       return (
         <div
-          className="h-14 w-14 rounded-full box-glow"
+          className="absolute inset-0 box-glow"
           style={{ background: NEON_COLOR_VAR[c], color: NEON_COLOR_VAR[c] }}
         />
       )
     }
     case 'position':
-      return <MiniGrid gridSize={question.gridSize} highlight={question.options[index]} size={88} />
+      return <MiniGrid gridSize={question.gridSize} highlight={question.options[index]} size={120} />
     case 'count':
-      return <span className="font-[Orbitron] text-4xl font-bold">{question.options[index]}</span>
+      return <span className="font-[Orbitron] text-5xl font-bold">{question.options[index]}</span>
     case 'order':
     case 'absence': {
       const d = question.options[index]
-      return <ObjectIcon kind={d.kind} color={d.color} size={60} />
+      return <ObjectIcon kind={d.kind} color={d.color} size={72} />
     }
   }
 }

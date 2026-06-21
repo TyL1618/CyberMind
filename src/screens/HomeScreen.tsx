@@ -1,6 +1,7 @@
 // 首頁
 import { motion } from 'framer-motion'
 import type { Title } from '../game/types'
+import { useI18n } from '../i18n'
 import { TitleBadge } from '../components/TitleBadge'
 
 interface Props {
@@ -11,12 +12,13 @@ interface Props {
 }
 
 export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props) {
+  const { t } = useI18n()
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-10 px-6 text-center">
       <button
         type="button"
         onClick={onOpenSettings}
-        aria-label="設定"
+        aria-label={t('settings')}
         className="absolute right-5 top-5 text-2xl text-white/50 transition active:scale-90 hover:text-neon-cyan"
       >
         ⚙
@@ -31,7 +33,7 @@ export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props)
           CYBER
           <span className="text-neon-pink">MIND</span>
         </h1>
-        <p className="font-[Orbitron] text-xs tracking-[0.35em] text-white/40">MEMORY · NEON · PUZZLE</p>
+        <p className="font-[Orbitron] text-xs tracking-[0.35em] text-white/40">MEMORY · PUZZLE</p>
       </motion.div>
 
       <motion.div
@@ -40,7 +42,7 @@ export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props)
         transition={{ delay: 0.3 }}
         className="flex flex-col items-center gap-3"
       >
-        <span className="font-[Orbitron] text-xs tracking-[0.25em] text-white/40">BEST</span>
+        <span className="font-[Orbitron] text-xs tracking-[0.25em] text-white/40">{t('best')}</span>
         <span className="font-[Orbitron] text-7xl font-bold text-white text-glow">{bestRound}</span>
         {bestRound > 0 && <TitleBadge title={title} />}
       </motion.div>
@@ -54,7 +56,7 @@ export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props)
         transition={{ delay: 0.5 }}
         className="rounded-full border-2 border-neon-cyan px-12 py-4 font-[Orbitron] text-lg font-bold tracking-widest text-neon-cyan box-glow active:scale-95"
       >
-        START
+        {t('start')}
       </motion.button>
     </div>
   )

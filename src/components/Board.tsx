@@ -19,7 +19,11 @@ export function Board({ objects, gridSize, revealInterval = 0, animate = true }:
   return (
     <div
       className="grid w-full max-w-[440px] aspect-square gap-2 rounded-2xl bg-surface/40 p-3"
-      style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+      style={{
+        gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
+        // 同時固定行高,讓每格都是完美正方形(否則空格被內容撐成不等高)
+        gridTemplateRows: `repeat(${gridSize}, minmax(0, 1fr))`,
+      }}
     >
       {Array.from({ length: gridSize * gridSize }, (_, i) => {
         const obj = byCell.get(i)
