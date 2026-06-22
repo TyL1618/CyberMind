@@ -8,7 +8,7 @@
 
 ## 0. 開發現況（Implementation Status）
 
-> 更新：2026-06-21（第三輪：遊戲內暫停／返回主選單；全螢幕已實測生效）
+> 更新：2026-06-22（第四輪：頭銜動畫強化、Howler.js 音效、A2HS 安裝提示、Splash 優化）
 
 本文件以下章節（§1 起）為**設計規格**；本節記錄**實際實作進度**。
 
@@ -25,7 +25,10 @@
 | **返回主選單** | ⌂ → 確認框「要離開遊戲嗎？」（留下／離開），離開才回首頁 |
 | **i18n** | 零依賴自建（`src/i18n`），**繁中（預設）／英文**設定即時切換、`localStorage` 持久化；題目提示、頭銜、所有功能文字皆翻譯（品牌字 CYBERMIND 保留） |
 | **倒數計時** | 展示／答題兩階段皆有：中央大數字 + 進度條，越接近 0 由青→黃→紅；`setInterval` 依真實時間扣除；**暫停／設定／返回確認開啟時凍結**（完全停掉 timer，剩餘時間存 ref 續跑接續） |
-| 音效 | **Web Audio 合成**（答對／答錯／復活／頭銜升級 + 記憶階段環境音），無外部音檔、可離線 |
+| 音效 | **Howler.js** 載入預生成 WAV（`public/audio/`，`scripts/gen-audio.mjs` 純 Node.js 合成），可離線；換真實取樣只需覆蓋同名檔案 |
+| **頭銜升級動畫** | 衝擊波擴散環 + 26 顆霓虹粒子爆炸 + emoji 彈入 + 金字標題漸入（`TitleUpOverlay`） |
+| **A2HS 安裝提示** | `useInstallPrompt` 攔截 `beforeinstallprompt`，首頁底部自訂橫幅（安裝／忽略），`localStorage` 持久化忽略狀態 |
+| **Splash 優化** | `index.html` 內嵌品牌載入畫面（React 掛載前顯示 CYBERMIND 字樣），App 首次渲染後 0.35s 淡出移除；Apple PWA meta tags（`apple-mobile-web-app-capable` 等） |
 | 設定 | 語言／音效／音樂開關，`localStorage` 持久化；首頁與遊戲內共用同一彈窗（返回主選單已改為遊戲內專屬按鈕） |
 | 頭銜升級 | 跨頭銜門檻時播放儀式動畫 + 音效 |
 | **沉浸式（已實測）** | manifest `display:fullscreen` + `viewport-fit=cover` + safe-area padding；**安裝後實測可隱藏系統列**（注意：`display` 在安裝當下鎖定，改設定後需**完整解除安裝再重裝**才生效） |
@@ -86,12 +89,12 @@ npm run deploy     # build + wrangler deploy（讀 wrangler.jsonc）
 
 ### 待辦（下一階段）
 
-- [ ] 頭銜升級動畫再加強（粒子／音效層次）
-- [ ] 真實取樣音效（改 Howler.js）
+- [x] 頭銜升級動畫再加強（粒子／音效層次）
+- [x] 真實取樣音效（改 Howler.js）
+- [x] 自訂安裝提示（A2HS）、splash 畫面優化
 - [ ] TWA 打包（Bubblewrap / PWA Builder）→ 上架 Google Play
 - [ ] 接入 AdMob Rewarded（復活廣告）
 - [ ] 接入 Google Play Billing（買斷 $1.99）
-- [ ] 自訂安裝提示（A2HS）、splash 畫面優化
 
 ---
 

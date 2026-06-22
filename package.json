@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "icons": "node scripts/gen-icons.mjs",
+    "gen-audio": "node scripts/gen-audio.mjs",
     "cf:login": "wrangler login",
     "deploy": "npm run build && wrangler deploy"
   },

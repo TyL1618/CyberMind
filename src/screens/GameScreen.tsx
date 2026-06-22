@@ -7,6 +7,7 @@ import { Board } from '../components/Board'
 import { QuestionPanel } from '../components/QuestionPanel'
 import { Countdown } from '../components/Countdown'
 import { TitleBadge } from '../components/TitleBadge'
+import { TitleUpOverlay } from '../components/TitleUpOverlay'
 
 function TopBar({
   level,
@@ -143,37 +144,7 @@ export function GameScreen({
       </div>
 
       {/* 頭銜升級儀式 */}
-      <AnimatePresence>
-        {phase === 'ready' && justUnlockedTitle && (
-          <motion.div
-            key="titleup"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-bg/85"
-          >
-            <motion.span
-              initial={{ scale: 0, rotate: -30 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 12 }}
-              className="text-8xl"
-            >
-              {justUnlockedTitle.emoji}
-            </motion.span>
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex flex-col items-center gap-1"
-            >
-              <span className="font-[Orbitron] text-xs tracking-[0.4em] text-neon-gold">{t('newRank')}</span>
-              <span className="font-[Orbitron] text-4xl font-black uppercase tracking-widest text-neon-gold text-glow">
-                {t(`title.${justUnlockedTitle.tier}`)}
-              </span>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <TitleUpOverlay title={justUnlockedTitle} visible={phase === 'ready' && justUnlockedTitle !== null} />
 
       {/* 答對閃示 */}
       <AnimatePresence>

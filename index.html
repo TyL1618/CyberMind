@@ -9,6 +9,13 @@
     />
     <meta name="theme-color" content="#07060f" />
     <meta name="description" content="CyberMind — 霓虹賽博龐克記憶益智遊戲" />
+
+    <!-- Apple PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CyberMind" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,8 +23,32 @@
       rel="stylesheet"
     />
     <title>CyberMind</title>
+
+    <!-- 初始載入畫面：React 掛載前顯示品牌字，避免白屏 -->
+    <style>
+      #splash {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background: #07060f;
+        transition: opacity 0.35s ease;
+      }
+      #splash.out { opacity: 0; pointer-events: none; }
+      #splash-title {
+        font-family: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(2rem, 8vw, 3.5rem);
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        color: #00ffff;
+        text-shadow: 0 0 24px #00ffff80;
+        user-select: none;
+      }
+      #splash-title span { color: #ff2d78; }
+    </style>
   </head>
   <body>
+    <div id="splash" aria-hidden="true">
+      <div id="splash-title">CYBER<span>MIND</span></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

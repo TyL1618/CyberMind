@@ -1,8 +1,9 @@
 // 首頁
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { Title } from '../game/types'
 import { useI18n } from '../i18n'
 import { TitleBadge } from '../components/TitleBadge'
+import { useInstallPrompt } from '../hooks/useInstallPrompt'
 
 interface Props {
   bestRound: number
@@ -13,6 +14,7 @@ interface Props {
 
 export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props) {
   const { t } = useI18n()
+  const { canInstall, install, dismiss } = useInstallPrompt()
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-10 px-6 text-center">
       <button
@@ -58,6 +60,42 @@ export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props)
       >
         {t('start')}
       </motion.button>
+
+      {/* A2HS 安裝橫幅：只在瀏覽器中、未安裝、未忽略時出現 */}
+      <AnimatePresence>
+        {canInstall && (
+          <motion.div
+            initial={{ y: 72, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 72, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+            className="absolute bottom-6 left-3 right-3 flex items-center gap-3 rounded-2xl border border-surface-border bg-surface px-4 py-3 shadow-lg"
+          >
+            <span className="text-2xl leading-none">📲</span>
+            <div className="flex min-w-0 flex-1 flex-col items-start">
+              <span className="font-[Orbitron] text-xs font-bold tracking-wide text-neon-cyan">
+                {t('installTitle')}
+              </span>
+              <span className="truncate text-[11px] text-white/45">{t('installDesc')}</span>
+            </div>
+            <button
+              type="button"
+              onClick={install}
+              className="shrink-0 rounded-full border border-neon-cyan px-3 py-1.5 font-[Orbitron] text-xs font-bold text-neon-cyan active:scale-95"
+            >
+              {t('install')}
+            </button>
+            <button
+              type="button"
+              onClick={dismiss}
+              aria-label="dismiss"
+              className="shrink-0 text-base text-white/30 hover:text-white/60 active:scale-90"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

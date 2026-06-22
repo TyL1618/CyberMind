@@ -20,6 +20,15 @@ function App() {
 
   const onHome = store.phase === 'home'
 
+  // 移除初始載入 splash（App 首次渲染後淡出）
+  useEffect(() => {
+    const el = document.getElementById('splash')
+    if (!el) return
+    el.classList.add('out')
+    const tid = setTimeout(() => el.remove(), 380)
+    return () => clearTimeout(tid)
+  }, [])
+
   // 任一遮罩開啟時暫停倒數（設定 / 返回確認 / 暫停）
   const shouldPause = settingsOpen || leaveGameOpen || gamePaused
   useEffect(() => {

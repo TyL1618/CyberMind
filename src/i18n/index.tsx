@@ -42,6 +42,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     // 離開提示
     exitHint: '再按一次返回鍵即可離開',
     exitStay: '留下繼續玩',
+    // 安裝提示
+    installTitle: '安裝到主螢幕',
+    installDesc: '離線可玩，更像原生 App',
+    install: '安裝',
     // 題目提示
     'prompt.color': '什麼顏色？',
     'prompt.position': '在哪一格？',
@@ -84,6 +88,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     stay: 'STAY',
     exitHint: 'Press back again to exit',
     exitStay: 'Stay & keep playing',
+    // install prompt
+    installTitle: 'Add to Home Screen',
+    installDesc: 'Play offline, native-app feel',
+    install: 'INSTALL',
     'prompt.color': 'WHAT COLOR?',
     'prompt.position': 'WHERE?',
     'prompt.order': 'WHICH WAS Nᵗʰ?',
