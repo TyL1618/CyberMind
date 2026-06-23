@@ -16,7 +16,7 @@ const STORAGE_KEY = 'cybermind_lang'
 const DICT: Record<Lang, Record<string, string>> = {
   'zh-Hant': {
     start: '開始',
-    best: '最佳',
+    best: '最佳紀錄',
     level: '關卡',
     ready: '準備',
     gameOver: '遊戲結束',
