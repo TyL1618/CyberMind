@@ -37,6 +37,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    overscroll-behavior: none; /* 禁止下拉刷新（原生 App 感） */
     /* 像原生 App：禁止選取/複製、長按選單，去除點擊高亮 */
     user-select: none;
     -webkit-user-select: none;
