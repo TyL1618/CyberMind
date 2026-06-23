@@ -44,8 +44,8 @@ export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props)
         transition={{ delay: 0.3 }}
         className="flex flex-col items-center gap-3"
       >
-        <span className="font-[Orbitron] text-xs tracking-[0.25em] text-white/40">{t('best')}</span>
-        <span className="font-[Orbitron] text-7xl font-bold text-white text-glow">{bestRound}</span>
+        <span className="font-[Orbitron] text-sm tracking-[0.25em] text-white/70">{t('best')}</span>
+        <span className="font-[Orbitron] text-8xl font-bold text-neon-cyan text-glow">{bestRound}</span>
         {bestRound > 0 && <TitleBadge title={title} />}
       </motion.div>
 
