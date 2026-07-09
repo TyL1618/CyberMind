@@ -87,14 +87,48 @@ npm run cf:login   # 首次：瀏覽器授權 wrangler
 npm run deploy     # build + wrangler deploy（讀 wrangler.jsonc）
 ```
 
+### 📌 2026-07-09 決策：捨棄 TWA，改用 Capacitor 包裝原生殼
+
+跟 TaiexRider（同開發者的另一款遊戲，已上架封測中）討論後拍板：CyberMind 上架 Android
+**不走 TWA**（原訂 Bubblewrap / PWA Builder 那條路線），改用 **Capacitor** 包裝原生殼。
+目前專案還很早期（連 `android/` 資料夾都還沒建），是切換方向沉沒成本最低的時間點。原因：
+
+- **TWA 有一個無法關閉的系統通知，跟廣告/付款無關**：Chrome 對 TWA 有強制揭露政策——
+  只要畫面內容是透過 Chrome 呈現（這正是 TWA 的本質：把網站包裝成看起來像原生 App），
+  就會顯示類似「正在 Chrome 中執行」的提示。這條規則寫死在 Chrome 本身，不是開發者
+  manifest 設定或程式碼能關掉的。TaiexRider 從開發初期到現在都無法解決這個提示，
+  確認是 TWA 架構的固有限制，不是特定版本的 bug。
+- **TaiexRider 已經在「TWA + AdMob + Play Billing」這條路上踩了大量坑**：loopback
+  HTTP server 橋接、Background Activity Launch 限制擋下 `startActivity`、CORS 標頭
+  缺漏導致網頁讀不到廣告結果、Play Billing 的 `DelegationService`/`BIND_JOB_SERVICE`
+  權限衝突、`asset_statements` meta-data 缺漏——根因都是「Chrome 沒有官方管道讓網頁
+  JS 直接呼叫原生 SDK」，只要走 TWA 架構就無法避免，前後花了好幾個版本才真正打通。
+  CyberMind 待辦清單本來就要做「AdMob Rewarded 復活廣告」跟「Play Billing 買斷」，
+  會踩到同一類問題。
+- **選 Capacitor、不選全原生重寫**：CyberMind 目前渲染需求輕量（5×5 格子 UI +
+  Framer Motion 動畫，不是物理模擬），WebView 效能綽綽有餘，不需要為了拿掉 TWA
+  就連帶把整包 React/TypeScript 遊戲邏輯（狀態機、五種題型生成器、難度曲線、i18n
+  等，見上方「已完成」表格）重寫成 Kotlin。Capacitor 保留現有程式碼，只換掉原生殼
+  跟橋接方式，廣告/付款改用成熟的社群外掛（`@capacitor-community` 系列）以正規
+  JS↔原生介面接上，不需要自建 loopback server 這類土法煉鋼的橋接。
+
+**⚠️ 資安提醒（順帶記錄，非本次改動範圍）**：目前 `cybermind_has_purchased` 只存在
+localStorage（見上方 §9.1）。之後真的接上 Google Play Billing 時，**必須加上伺服器端
+驗證購買憑證**，不能只信任本機端這個旗標——否則玩家開 devtools 手動改 localStorage
+就能免費解鎖 $1.99 買斷。CyberMind 目前用 Cloudflare Workers 部署，可以寫一個輕量
+Worker 端點做驗證，邏輯可參考 TaiexRider 已經上線驗證過的 `verify-iap-purchase`
+Edge Function（呼叫 Google Play Developer API 驗證購買憑證）。
+
 ### 待辦（下一階段）
 
 - [x] 頭銜升級動畫再加強（粒子／音效層次）
 - [x] 真實取樣音效（改 Howler.js）
 - [x] 自訂安裝提示（A2HS）、splash 畫面優化
-- [ ] TWA 打包（Bubblewrap / PWA Builder）→ 上架 Google Play
-- [ ] 接入 AdMob Rewarded（復活廣告）
-- [ ] 接入 Google Play Billing（買斷 $1.99）
+- [ ] Capacitor 打包（`@capacitor/core` + `@capacitor/android`）→ 上架 Google Play
+      （原訂 TWA/Bubblewrap 方案已於 2026-07-09 改為 Capacitor，見上方決策記錄）
+- [ ] 接入 AdMob Rewarded（復活廣告）——改用 Capacitor 廣告外掛，非 TWA 橋接
+- [ ] 接入 Google Play Billing（買斷 $1.99）——改用 Capacitor 付款外掛 + 伺服器端
+      購買憑證驗證（見上方資安提醒）
 
 ---
 
