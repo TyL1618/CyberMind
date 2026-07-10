@@ -33,10 +33,11 @@ const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   ${logo()}
 </svg>`
 
-// Adaptive icon 前景：透明底，標誌縮進安全區（避免被系統遮罩裁到）
+// Adaptive icon 前景：透明底 + 標誌（跟 iconSvg 同比例，本身已有內縮，不必再額外縮小；
+// 上一版多縮了一次導致系統遮罩後圖示看起來過小）
 const foregroundSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   ${defs}
-  ${logo('translate(90 90) scale(0.62)')}
+  ${logo()}
 </svg>`
 
 // Adaptive icon 背景：純色底
