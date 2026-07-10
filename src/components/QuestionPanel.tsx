@@ -121,7 +121,7 @@ export function QuestionPanel({ question, answered, selectedIndex, onAnswer }: P
   return (
     <div className="flex w-full max-w-[440px] flex-col gap-5">
       <Prompt question={question} />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="mx-auto grid w-full max-w-[290px] grid-cols-2 gap-3">
         {question.options.map((_, i) => (
           <OptionButton
             key={i}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CyberMind</string>
+    <string name="title_activity_main">CyberMind</string>
+    <string name="package_name">com.tylapp.cybermind</string>
+    <string name="custom_url_scheme">com.tylapp.cybermind</string>
+</resources>

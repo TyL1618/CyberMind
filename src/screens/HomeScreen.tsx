@@ -16,50 +16,52 @@ export function HomeScreen({ bestRound, title, onStart, onOpenSettings }: Props)
   const { t } = useI18n()
   const { canInstall, install, dismiss } = useInstallPrompt()
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center gap-10 px-6 text-center">
+    <div className="relative flex flex-1 flex-col items-center justify-center gap-10 px-8 text-center">
       <button
         type="button"
         onClick={onOpenSettings}
         aria-label={t('settings')}
-        className="absolute right-5 top-5 text-2xl text-white/50 transition active:scale-90 hover:text-neon-cyan"
+        className="absolute right-5 top-5 text-[1.65rem] text-white/55 transition active:scale-90 hover:text-neon-cyan"
       >
         ⚙
       </button>
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="flex flex-col items-center gap-3"
-      >
-        <h1 className="font-[Orbitron] text-5xl font-black tracking-tight text-neon-cyan text-glow sm:text-6xl">
-          CYBER
-          <span className="text-neon-pink">MIND</span>
-        </h1>
-        <p className="font-[Orbitron] text-xs tracking-[0.35em] text-white/40">MEMORY · PUZZLE</p>
-      </motion.div>
+      <div className="flex -translate-y-[5vh] flex-col items-center gap-10">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col items-center gap-3"
+        >
+          <h1 className="font-[Orbitron] text-[clamp(2.25rem,10vw,3.5rem)] font-black tracking-tight text-neon-cyan text-glow">
+            CYBER
+            <span className="text-neon-pink">MIND</span>
+          </h1>
+          <p className="font-[Orbitron] text-xs tracking-[0.35em] text-white/40">MEMORY · PUZZLE</p>
+        </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="flex flex-col items-center gap-3"
-      >
-        <span className="font-[Orbitron] text-base font-bold tracking-[0.25em] text-neon-cyan text-glow">{t('best')}</span>
-        <span className="font-[Orbitron] text-6xl font-bold text-neon-cyan text-glow">{bestRound}</span>
-        {bestRound > 0 && <TitleBadge title={title} />}
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col items-center gap-3"
+        >
+          <span className="font-[Orbitron] text-base font-bold tracking-[0.25em] text-neon-cyan text-glow">{t('best')}</span>
+          <span className="font-[Orbitron] text-6xl font-bold text-neon-cyan text-glow">{bestRound}</span>
+          {bestRound > 0 && <TitleBadge title={title} />}
+        </motion.div>
 
-      <motion.button
-        type="button"
-        onClick={onStart}
-        whileTap={{ scale: 0.94 }}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="rounded-full border-2 border-neon-cyan px-12 py-4 font-[Orbitron] text-lg font-bold tracking-widest text-neon-cyan box-glow active:scale-95"
-      >
-        {t('start')}
-      </motion.button>
+        <motion.button
+          type="button"
+          onClick={onStart}
+          whileTap={{ scale: 0.94 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="rounded-full border-2 border-neon-cyan px-12 py-4 font-[Orbitron] text-lg font-bold tracking-widest text-neon-cyan box-glow active:scale-95"
+        >
+          {t('start')}
+        </motion.button>
+      </div>
 
       {/* A2HS 安裝橫幅：只在瀏覽器中、未安裝、未忽略時出現 */}
       <AnimatePresence>

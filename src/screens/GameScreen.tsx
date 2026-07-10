@@ -9,38 +9,61 @@ import { Countdown } from '../components/Countdown'
 import { TitleBadge } from '../components/TitleBadge'
 import { TitleUpOverlay } from '../components/TitleUpOverlay'
 
+function PauseIcon() {
+  return (
+    <span className="inline-flex items-center gap-[0.2em]">
+      <span className="block h-[1em] w-[0.32em] rounded-[1px] bg-current" />
+      <span className="block h-[1em] w-[0.32em] rounded-[1px] bg-current" />
+    </span>
+  )
+}
+
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-[1em] w-[1em]">
+      <path
+        d="M4 11.5 12 4l8 7.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 10v9a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1v-9"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function TopBar({
   level,
   bestRound,
   revivesLeft,
-  onOpenSettings,
   onReturnMenu,
   onPause,
 }: {
   level: number
   bestRound: number
   revivesLeft: number
-  onOpenSettings: () => void
   onReturnMenu: () => void
   onPause: () => void
 }) {
   const { t } = useI18n()
-  const iconBtn = 'text-xl text-white/55 transition active:scale-90 hover:text-neon-cyan'
+  const iconBtn = 'text-[1.65rem] text-white/55 transition active:scale-90 hover:text-neon-cyan'
   return (
     <div className="flex w-full max-w-[440px] flex-col gap-3">
-      {/* 控制列：暫停（左）｜主選單 + 設定（右） */}
-      <div className="flex items-center justify-between">
+      {/* 控制列：暫停（左）｜主選單（右）；設定鈕獨立浮在畫面右上角，跟首頁位置/大小統一，故此列右側需留白避免重疊 */}
+      <div className="flex items-center justify-between pr-14">
         <button type="button" onClick={onPause} aria-label={t('pause')} className={iconBtn}>
-          ⏸
+          <PauseIcon />
         </button>
-        <div className="flex items-center gap-4">
-          <button type="button" onClick={onReturnMenu} aria-label={t('menu')} className={iconBtn}>
-            ⌂
-          </button>
-          <button type="button" onClick={onOpenSettings} aria-label={t('settings')} className={iconBtn}>
-            ⚙
-          </button>
-        </div>
+        <button type="button" onClick={onReturnMenu} aria-label={t('menu')} className={iconBtn}>
+          <HomeIcon />
+        </button>
       </div>
       {/* 資訊列：關卡｜頭銜｜最佳 + 復活 */}
       <div className="flex items-center justify-between gap-2 text-sm">
@@ -50,10 +73,9 @@ function TopBar({
         </div>
         <TitleBadge title={titleForLevel(level)} />
         <div className="flex flex-col items-end">
-          <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">
-            {t('best')} {bestRound}
-          </span>
-          <span className="text-base leading-tight" title={t('revive')}>
+          <span className="font-[Orbitron] text-[10px] tracking-[0.2em] text-white/40">{t('best')}</span>
+          <span className="font-[Orbitron] text-xl font-bold text-neon-cyan text-glow">{bestRound}</span>
+          <span className="mt-0.5 text-base leading-tight" title={t('revive')}>
             {Array.from({ length: REVIVES_PER_RUN }, (_, i) => (
               <span key={i} className={i < revivesLeft ? 'text-neon-pink' : 'text-white/15'}>
                 ♥
@@ -93,16 +115,28 @@ export function GameScreen({
 
   return (
     <div className="relative flex flex-1 flex-col items-center gap-6 px-4 py-5">
+      <button
+        type="button"
+        onClick={onOpenSettings}
+        aria-label={t('settings')}
+        className="absolute right-5 top-5 text-[1.65rem] text-white/55 transition active:scale-90 hover:text-neon-cyan"
+      >
+        ⚙
+      </button>
       <TopBar
         level={level}
         bestRound={bestRound}
         revivesLeft={revivesLeft}
-        onOpenSettings={onOpenSettings}
         onReturnMenu={onReturnMenu}
         onPause={onPause}
       />
 
-      <div className="flex w-full flex-1 flex-col items-center justify-center gap-6">
+      <div className="flex w-full flex-1 flex-col items-center gap-6">
+        {/* 倒數計時條固定在資訊列正下方,不隨後面內容（板子／題目）浮動,避免展示／作答兩階段位置跳動 */}
+        {(phase === 'memorize' || phase === 'question') && (
+          <Countdown remainingMs={remainingMs} durationMs={phaseDurationMs} />
+        )}
+
         {phase === 'ready' && (
           <motion.div
             key="ready"
@@ -124,22 +158,16 @@ export function GameScreen({
         )}
 
         {phase === 'memorize' && levelData && (
-          <>
-            <Board objects={levelData.objects} gridSize={5} revealInterval={levelData.revealInterval} animate />
-            <Countdown remainingMs={remainingMs} durationMs={phaseDurationMs} />
-          </>
+          <Board objects={levelData.objects} gridSize={5} revealInterval={levelData.revealInterval} animate />
         )}
 
         {(phase === 'question' || phase === 'correct' || phase === 'wrong') && levelData && (
-          <>
-            <QuestionPanel
-              question={levelData.question}
-              answered={answered}
-              selectedIndex={selectedIndex}
-              onAnswer={store.answer}
-            />
-            {phase === 'question' && <Countdown remainingMs={remainingMs} durationMs={phaseDurationMs} />}
-          </>
+          <QuestionPanel
+            question={levelData.question}
+            answered={answered}
+            selectedIndex={selectedIndex}
+            onAnswer={store.answer}
+          />
         )}
       </div>
 

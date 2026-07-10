@@ -30,7 +30,7 @@ export function Board({ objects, gridSize, revealInterval = 0, animate = true }:
         return (
           <div
             key={i}
-            className="flex items-center justify-center rounded-lg border border-surface-border/60 bg-bg-soft/40"
+            className="flex items-center justify-center rounded-lg border-2 border-white/20 bg-bg-soft/40"
           >
             {obj && (
               <motion.div
